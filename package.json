@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@types/react": "^18.3.12",
     "clsx": "^2.1.1",
     "daisyui": "^4.12.14",
     "framer-motion": "^11.11.17",
@@ -16,6 +17,7 @@
     "next": "^15.0.3",
     "react": "19.0.0-rc-66855b96-20241106",
     "react-dom": "19.0.0-rc-66855b96-20241106",
+    "typescript": "^5.7.2",
     "zustand": "^5.0.1"
   },
   "devDependencies": {

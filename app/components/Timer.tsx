@@ -1,6 +1,4 @@
-import { useState, useEffect } from "react";
 import { useTimerStore } from "../stores/useTimerStore";
-import { formatTimeValue } from "../utils/formatValue";
 import clsx from "clsx";
 import { Bell, Pause, Play, RotateCcw, X } from "lucide-react";
 import { CountdownCircle } from "./CountdownCircle";
