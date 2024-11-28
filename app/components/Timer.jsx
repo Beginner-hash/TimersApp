@@ -1,76 +1,149 @@
 import { useState, useEffect } from "react";
 import { useTimerStore } from "../stores/useTimerStore";
 import { formatTimeValue } from "../utils/formatValue";
+import clsx from "clsx";
+import { Bell, Pause, Play, RotateCcw, X } from "lucide-react";
+import { CountdownCircle } from "./CountdownCircle";
 
 export const Timer = ({ id }) => {
-  const timer = useTimerStore((s) => s.timers.find((t) => t.id === id));
-
-  const { id, duration, timeLeft, isRunning, endAt } = timer;
-
-  const removeTimer = useTimerStore((state) => state.removeTimer);
-
-  const handleRemoveTimer = (id) => {
-    removeTimer(id);
-  };
-
-  // Fonction pour décrémenter le temps restant
-  const decrementTime = () => {
-    setTimerComp((prev) => ({
-      ...prev,
-      timeLeft: prev.timeLeft - 1000,
-    }));
-  };
-
-  // Utiliser useEffect pour gérer le timer
-  useEffect(() => {
-    if (timerComp.isRunning && timerComp.timeLeft > 0) {
-      const timeout = setTimeout(decrementTime, 1000);
-
-      // Nettoyer le timer si le composant est démonté ou `isRunning` change
-      return () => clearTimeout(timeout);
-    }
-  }, [timerComp.isRunning, timerComp.timeLeft]);
+  const timer = useTimerStore((state) =>
+    state.timers.find((timer) => timer.id == id)
+  );
 
   const millisecondsToHMS = (mili) => {
-    const date = new Date(mili);
-    const hours = formatTimeValue(date.getHours().toString(), 23);
-    const minutes = formatTimeValue(date.getMinutes().toString(), 59);
-    const seconds = formatTimeValue(date.getSeconds().toString(), 59);
+    const hours = Math.floor(mili / 3600000);
+    const minutes = Math.floor((mili % 3600000) / 60000);
+    const seconds = Math.floor((mili % 60000) / 1000);
 
-    return `${hours}:${minutes}:${seconds}`;
+    return {
+      hours: hours,
+      minutes: minutes,
+      seconds: seconds,
+    };
   };
 
-  console.log(useTimerStore((state) => state.timers[0].timeLeft));
-  console.log(timerComp.timeLeft);
+  const padHMS = (timeHSM) => ({
+    hours: String(timeHSM.hours).padStart(2, "0"),
+    minutes: String(timeHSM.minutes).padStart(2, "0"),
+    seconds: String(timeHSM.seconds).padStart(2, "0"),
+  });
 
-  return (
-    <div className="m-auto size-fit">
-      <div className="relative flex size-[224px] flex-col gap-2 rounded-2xl bg-base-200 p-4 brightness-75">
-        <div className="relative flex size-full flex-col items-center justify-center gap-1">
-          <div className="flex items-center justify-between gap-2">
-            <p>{millisecondsToHMS(timerComp.endAt)}</p>
-          </div>
-          <div className="relative flex items-center justify-center">
-            <p className="text-base-content text-5xl">{timerComp.timeLeft}</p>
-          </div>
-          <div>
-            <p className="text-sm text-neutral-content">mins</p>
-          </div>
-        </div>
-        {/* Bouton pour supprimer le timer */}
+  const getTimeText = (timeLeft) => {
+    const timeLeftPadHMS = padHMS(millisecondsToHMS(timeLeft));
+    let timeLeftText = `${timeLeftPadHMS.minutes}:${timeLeftPadHMS.seconds}`;
+    if (timeLeftPadHMS.hours !== "00") {
+      timeLeftText = `${timeLeftPadHMS.hours}:${timeLeftText}`;
+    }
+
+    return timeLeftText;
+  };
+
+  const TimeDisplay = ({ timeLeft }) => {
+    const timeText = getTimeText(timeLeft);
+    const timeHMS = millisecondsToHMS(timeText);
+
+    return (
+      <div className="relative flex items-center justify-center">
+        <p
+          className={clsx("font-light text-base-content", {
+            "text-4xl": !timeHMS.hours,
+            "text-2xl": timeHMS.hours,
+          })}
+        >
+          {timeText}
+        </p>
+      </div>
+    );
+  };
+
+  const getDurationText = (duration) => {
+    const durationdPadHMS = padHMS(millisecondsToHMS(duration));
+
+    if (durationdPadHMS.hours !== "00") {
+      return `${durationdPadHMS.hours} hrs`;
+    }
+
+    if (durationdPadHMS.minutes !== "00") {
+      return `${durationdPadHMS.minutes} mins`;
+    }
+
+    return `${durationdPadHMS.seconds} secs`;
+  };
+
+  const DurationDisplay = ({ duration }) => {
+    const durationText = getDurationText(duration);
+
+    return (
+      <div>
+        <p className="text-sm text-neutral-content">{durationText}</p>
+      </div>
+    );
+  };
+
+  const TimerControls = ({ id, isRunning, timeLeft }) => {
+    const removeTimer = useTimerStore((state) => state.removeTimer);
+    const toggleRunning = useTimerStore((state) => state.toggleRunning);
+
+    return (
+      <>
         <button
           className="absolute bottom-3 left-3 flex size-7 items-center justify-center rounded-full bg-base-300 p-0 text-base-content"
-          onClick={() => handleRemoveTimer(timerComp.id)}
-        ></button>
-        {/* Bouton pour mettre en pause / reprendre */}
-        <button
-          className="absolute bottom-3 right-3 flex size-7 items-center justify-center rounded-full p-0 bg-success text-success-content"
-          onClick={() =>
-            setTimerComp((prev) => ({ ...prev, isRunning: !prev.isRunning }))
-          }
+          onClick={() => removeTimer(id)}
         >
-          {timerComp.isRunning ? "Pause" : "Reprendre"}
+          <X size={14} />
         </button>
+        <button
+          className={clsx(
+            "absolute bottom-3 right-3 flex size-7 items-center justify-center rounded-full p-0",
+            {
+              "bg-warning text-warning-content": isRunning,
+              "bg-success text-success-content": !isRunning,
+            }
+          )}
+          onClick={() => toggleRunning(id)}
+        >
+          {isRunning ? (
+            <Pause fill="currentColor" size={14} />
+          ) : timeLeft > 0 ? (
+            <Play fill="currentColor" size={14} />
+          ) : (
+            <RotateCcw size={14} />
+          )}
+        </button>
+      </>
+    );
+  };
+  const endAt = new Date(timer.endAt);
+
+  return (
+    <div
+      className={clsx(
+        "relative flex size-[224px] flex-col gap-2 rounded-2xl bg-base-200 p-1",
+        { "brightness-75": timer.timeLeft === 0 }
+      )}
+    >
+      <div className="relative flex size-full flex-col items-center justify-center gap-1">
+        <div className="flex items-center justify-between gap-2">
+          <Bell size={16} className="text-neutral-content"></Bell>
+          <p>{`${endAt.getHours().toString().padStart(2, "0")}:${endAt
+            .getMinutes()
+            .toString()
+            .padStart(2, "0")}`}</p>
+        </div>
+        <TimeDisplay timeLeft={timer.timeLeft}></TimeDisplay>
+        <DurationDisplay duration={timer.duration}></DurationDisplay>
+        <CountdownCircle
+          width={180}
+          timeLeft={timer.timeLeft}
+          duration={timer.duration}
+          className={"absolute"}
+          radiusRatio={0.95}
+        ></CountdownCircle>
+        <TimerControls
+          id={timer.id}
+          isRunning={timer.isRunning}
+          timeLeft={timer.timeLeft}
+        ></TimerControls>
       </div>
     </div>
   );

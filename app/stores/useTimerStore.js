@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { create } from "zustand";
 
 /**
@@ -16,7 +17,7 @@ export const useTimerStore = create((set) => ({
       timers: [
         ...state.timers,
         {
-          id: new Date(Date.now()).toString(),
+          id: Date.now(),
           duration: milliseconds,
           timeLeft: milliseconds,
           endAt: Date.now() + milliseconds,
@@ -32,7 +33,56 @@ export const useTimerStore = create((set) => ({
   },
   toggleRunning: (id) => {
     set((state) => ({
-      timers: state.timers.filter((timer) => timer.id !== id),
+      timers: state.timers.map((timer) => {
+        if (timer.id !== id) return timer;
+
+        if (timer.timeLeft === 0 && !timer.isRunning) {
+          return {
+            ...timer,
+            timeLeft: timer.duration,
+            isRunning: true,
+            endAt: timer.duration + Date.now(),
+          };
+        }
+
+        return {
+          ...timer,
+          isRunning: !timer.isRunning,
+          endAt: timer.isRunning ? timer.endAt : timer.endAt + Date.now(),
+        };
+      }),
     }));
   },
 }));
+
+export const useTimerInterval = () => {
+  useEffect(() => {
+    const intervalID = setInterval(() => {
+      useTimerStore.setState((state) => ({
+        timers: state.timers.map((timer) => {
+          if (!timer.isRunning) {
+            return timer;
+          }
+
+          const onTimerEnds = () => {
+            const audio = new Audio("/ring.mp3");
+            audio.play();
+            return { ...timer, timeLeft: 0, isRunning: false };
+          };
+
+          const timeLeft = timer.timeLeft - 1000;
+
+          if (timeLeft <= 0) {
+            return onTimerEnds();
+          }
+
+          return { ...timer, timeLeft };
+        }),
+      }));
+    }, 1000);
+
+    return () => {
+      clearInterval(intervalID);
+    };
+  }, []);
+};

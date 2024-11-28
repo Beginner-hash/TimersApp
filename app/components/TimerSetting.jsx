@@ -27,14 +27,12 @@ export const TimerSetting = () => {
 
   const addTimer = useTimerStore((state) => state.addTimer);
 
-  console.log(useTimerStore((state) => state.timers));
-
   return (
     <>
       <div className="flex items-center rounded-md border border-neutral bg-base-200 p-2">
         {Object.entries(time).map(([key, value]) => (
           <input
-            className="h-24 w-20 rounded-md bg-base-200 text-center text-5xl focus:bg-accent focus:text-accent-content focus:outline-none md:h-20 md:w-32 md:text-6xl lg:h-32 lg:w-40 lg:text-8xl"
+            className="h-24 w-20 rounded-md bg-base-200 text-center text-5xl focus:bg-accent focus:text-accent-content focus:outline-none md:h-20 md:w-32 md:text-6xl lg:h-32 lg:w-40 lg:text-8xl flex-1"
             name={key}
             type="number"
             key={key}
