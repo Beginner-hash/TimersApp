@@ -1,6 +1,6 @@
 ## Access this project live
 
-You can access this project live on this link : [MovieSearch](https://timers-app-liart.vercel.app/)
+You can access this project live on this link : [TimersApp](https://timers-app-liart.vercel.app/)
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
